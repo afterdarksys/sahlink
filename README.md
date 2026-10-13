@@ -2,6 +2,8 @@
 
 Test and debug utility for a program **this tool starts**. It records stdin, stdout, and stderr. An optional relay listens on a loopback address and dials one upstream host:port. A control socket can read those streams and write to stdin and to the relay.
 
+**sah** means Service Automation Hub. The hub encompasses the platform and the suite of utilities.
+
 sahlink does not attach to an existing PID and does not ptrace. It does not see sockets the child opens on its own.
 
 ```bash
