@@ -7,10 +7,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"strings"
+
 	"github.com/afterdarksys/sahlink/internal/session"
 )
 
-const version = "0.1.0"
+const version = "0.2.0"
 
 func main() {
 	os.Exit(run(os.Args[1:]))
@@ -35,22 +37,67 @@ func run(args []string) int {
 		return cmdRun(args[1:])
 	case "io":
 		return cmdIO(args[1:])
+	case "rdp":
+		return cmdRDP(args[1:])
 	default:
+		if hasReverse(args) {
+			fmt.Fprintln(os.Stderr, "reverse_unsupported")
+			fmt.Fprintln(os.Stderr, "see docs/reverse-forward.md")
+			return 2
+		}
+		if isForward(args) {
+			return cmdForward(args)
+		}
 		usage()
 		return 2
 	}
 }
 
-func usage() {
-	fmt.Fprint(os.Stderr, `sahlink `+version+` — capture a program this tool starts
+func hasReverse(args []string) bool {
+	if len(args) == 0 {
+		return false
+	}
+	switch args[0] {
+	case "run", "io", "version", "--version", "help", "-h", "--help", "attach", "ptrace", "rdp":
+		return false
+	}
+	for _, a := range args {
+		if a == "-R" || a == "--remote" || a == "--reverse" {
+			return true
+		}
+	}
+	return false
+}
 
+func isForward(args []string) bool {
+	if len(args) == 0 {
+		return false
+	}
+	switch args[0] {
+	case "-L", "--local", "--via", "--launch", "--port":
+		return true
+	}
+	return strings.Contains(args[0], ":") || strings.HasPrefix(args[0], "[")
+}
+
+func usage() {
+	fmt.Fprint(os.Stderr, `sahlink `+version+` — TCP forward and a capture tool for a program this tool starts
+
+  sahlink HOST:PORT
+  sahlink -L LOCALPORT HOST:PORT
+  sahlink --via AGENT HOST:PORT
+  sahlink rdp [--port PORT] [--launch] HOST
   sahlink version
   sahlink run [--proxy-listen 127.0.0.1:0 --proxy-upstream HOST:PORT] [--max-bytes N] -- COMMAND...
   sahlink io --socket PATH --token-file PATH status
   sahlink io --socket PATH --token-file PATH read STREAM
   sahlink io --socket PATH --token-file PATH write STREAM
 
-sahlink starts COMMAND. It records stdin, stdout, and stderr. It does not
+HOST:PORT listens on 127.0.0.1 and asks that host's agent to dial 127.0.0.1:PORT.
+--via AGENT dials HOST:PORT from AGENT instead. -R is not available.
+Login is sahconnect login. The listener prints 127.0.0.1:PORT.
+
+sahlink run starts COMMAND. It records stdin, stdout, and stderr. It does not
 attach to an existing process. The socket relay listens on loopback and dials
 only the upstream named with --proxy-upstream. The control token is written
 to a mode 0600 file and is not printed.
