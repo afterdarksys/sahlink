@@ -1,8 +1,8 @@
 # AGENTS.md
 
-sahlink records stdio, and one opt-in loopback relay, for a process it starts.
+sahlink records stdio, and one opt-in loopback relay, for a process it starts. Version 0.2.0 also forwards TCP through the SystemAPI agent channel.
 
-Usage: `docs/usage.md`. Suite contract: `~/development/systemapi.io/docs/sah-suite.md`.
+Usage: `docs/usage.md`. Suite contract: `~/development/systemapi.io/docs/sah-suite.md`. TCP contract: `~/development/systemapi.io/docs/sah-tcp-protocol.md` on `feat/sah-channels`.
 
 ## Do this
 
@@ -19,6 +19,9 @@ Usage: `docs/usage.md`. Suite contract: `~/development/systemapi.io/docs/sah-sui
 - Do not put the token value in the child environment. `SAHLINK_TOKEN_FILE` is a path.
 - The child inherits the rest of the operator environment on purpose. Do not add a secret from another product into that environment.
 - Captured bytes can contain secrets the child printed. Say that in `docs/usage.md` if you change what is stored.
+- The TCP listener binds `127.0.0.1` only. Do not add a flag for any other address. `-R` stays `reverse_unsupported` until the TCP contract grows a reverse frame.
+- `internal/client`, `internal/config`, `internal/token`, and `internal/secfile` are copied from sahconnect. Do not weaken `DialGuard`, ticket checks, or token-file checks. Do not add a second login. Login stays `sahconnect login`.
+- Do not log a ticket or a WebSocket URL. A dial error says `tcp connection failed` or an HTTP status, not the URL.
 
 ## Next
 
